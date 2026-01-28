@@ -7,7 +7,7 @@ def two_sum (arr, target):
         complement = target - num
         if complement in seen:
             return [seen[complement], i]
-        seen[complement] = i
+        seen[num] = i
     return None
 
-print(two_sum(arr, 19))
+print(two_sum(arr, 16))

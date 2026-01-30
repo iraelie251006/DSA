@@ -9,10 +9,8 @@ for i in range(n-1):
     min_value = my_array.pop(min_index)
     my_array.insert(i, min_value)
 
-print("Sorted array:", my_array)
-
-my_array = [64, 34, 25, 12, 22, 11, 90, 5]
-
+                             
+                                                                                   
 n = len(my_array)
 for i in range(n):
     min_index = i

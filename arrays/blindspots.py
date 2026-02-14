@@ -19,3 +19,4 @@ arr = [2, 1, 4, 3, 6, 5, 7, 9, 8, 10]
 # LinkedList
 # Dynamic programming
 # Djistra algorithm
+# A* algorithm

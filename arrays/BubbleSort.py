@@ -9,6 +9,7 @@
 # Where when we subtract by one we don't want when we use [j + 1] to go out of bounds 
 # and we subtract i so that we will not happen to compare pairs that are already in the right place.
 
+# O(n^2)
 my_array = [64, 34, 25, 12, 22, 11, 90, 5]
 
 n = len(my_array)

@@ -5,3 +5,5 @@ def two_sum(arr, target):
     seen = {}
     for i in range(n):
         complement = target - arr[i]
+        if complement in seen:
+            return [arr[i], complement]

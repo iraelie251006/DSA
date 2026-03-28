@@ -3,6 +3,7 @@
 # this problem will include arrays
 # probably use of two pointers 
 # under fast and slow pointers
+# using python
 
 def containDuplicate():
     pass

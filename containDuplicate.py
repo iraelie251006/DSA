@@ -6,5 +6,14 @@
 # using python
 # implement in java later on
 
-def containDuplicate():
-    pass
+def containDuplicate(arr):
+    left = 0
+    right = len(arr) - 1
+
+    while left < right:
+        if arr[left] == arr[right]:
+            return "Contain duplicates"
+        elif arr[left] != arr[right]:
+            right -= 1
+            left += 1
+    return "No duplicates"

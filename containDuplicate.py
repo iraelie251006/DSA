@@ -17,3 +17,6 @@ def containDuplicate(arr):
             right -= 1
             left += 1
     return "No duplicates"
+
+arr = [1, 2, 4, 2, 4]
+print(containDuplicate(arr))

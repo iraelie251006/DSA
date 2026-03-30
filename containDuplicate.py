@@ -7,6 +7,7 @@
 # implement in java later on
 
 def containDuplicate(arr):
+    # indices initialization
     left = 0
     right = len(arr) - 1
 

@@ -1,11 +1,6 @@
-# Contain duplicate file will contain
-# the check for duplicate values
-# this problem will include arrays
-# probably use of two pointers 
-# under fast and slow pointers
-# using python
-# implement in java later on
+# Contain duplicate algorithm
 
+# This is O(n) linear time complexity and O(1) space
 def containDuplicate(arr):
     # indices initialization
     left = 0

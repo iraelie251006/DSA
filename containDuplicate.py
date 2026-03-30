@@ -11,6 +11,7 @@ def containDuplicate(arr):
     left = 0
     right = len(arr) - 1
 
+    # while loop to traverse an array
     while left < right:
         if arr[left] == arr[right]:
             return "Contain duplicates"

@@ -6,3 +6,4 @@
 ## recursion
 ## sorting algorithms
 ## graphs
+## Depth First Search

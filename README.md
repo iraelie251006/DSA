@@ -8,3 +8,4 @@
 ## graphs
 ## Depth First Search
 ## Bredth First Search
+## Trees

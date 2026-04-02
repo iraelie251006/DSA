@@ -5,3 +5,4 @@
 ## binary search
 ## recursion
 ## sorting algorithms
+## graphs

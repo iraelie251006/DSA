@@ -4,3 +4,4 @@
 ## sliding window
 ## binary search
 ## recursion
+## sorting algorithms

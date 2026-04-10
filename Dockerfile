@@ -4,3 +4,5 @@ WORKDIR /app
 COPY .mvn/ ./mvn
 COPY .mvnw pom.xml ./
 RUN ./mvnw dependency:go-offline -q
+
+COPY src ./src

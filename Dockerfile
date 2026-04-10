@@ -6,3 +6,6 @@ COPY .mvnw pom.xml ./
 RUN ./mvnw dependency:go-offline -q
 
 COPY src ./src
+RUN ./mvnw package -DskipTests -q
+
+RUN java -Djarmode=layertools -jar target/order-service.jar extract

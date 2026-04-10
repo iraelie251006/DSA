@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java Concurrency — Interactive Guide</title>
+<style>
+  :root {
+    --bg:      #0f1117;
+    --bg2:     #181c27;
+    --bg3:     #1e2333;
+    --bg4:     #252b3b;
+    --border:  rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text:    #e8eaf0;
+    --text2:   #8b91a8;
+    --text3:   #555d77;
+    --radius:    10px;
+    --radius-sm: 6px;
+    --purple:  #7F77DD;
+    --teal:    #1D9E75;
+    --amber:   #EF9F27;
+    --red:     #E24B4A;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 16px 48px;
+  }
+
+  .hdr { padding: 28px 0 8px; border-bottom: 0.5px solid var(--border); margin-bottom: 20px; }
+  .hdr h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 5px; }
+  .hdr p  { font-size: 13px; color: var(--text2); }
+
+  /* Shell */
+  .shell {
+    display: flex; gap: 0; min-height: 600px;
+    border: 0.5px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; background: var(--bg2);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 220px; min-width: 220px;
+    border-right: 0.5px solid var(--border);
+    background: var(--bg);
+    overflow-y: auto; padding: 12px 0;
+    flex-shrink: 0;
+  }
+  .sidebar-title {
+    font-size: 10px; font-weight: 600; color: var(--text3);
+    letter-spacing: .08em; padding: 0 14px 8px;
+    text-transform: uppercase;
+  }
+  .nav-item {
+    padding: 7px 14px; cursor: pointer; font-size: 13px;
+    color: var(--text2); transition: background .12s;
+    display: flex; align-items: center; gap: 8px;
+    border-left: 2px solid transparent; line-height: 1.3;
+  }
+  .nav-item:hover { background: var(--bg2); color: var(--text); }
+  .nav-item.active {
+    background: var(--bg2); color: var(--text);
+    border-left: 2px solid var(--purple); font-weight: 500;
+  }
+  .nav-badge {
+    font-size: 10px; padding: 1px 6px; border-radius: 20px;
+    background: rgba(29,158,117,0.15); color: #5DCAA5;
+    font-weight: 500; white-space: nowrap; margin-left: auto;
+  }
+
+  /* Content */
+  .content { flex: 1; overflow-y: auto; padding: 24px; min-width: 0; }
+
+  /* Progress */
+  .progress-bar { height: 3px; background: var(--bg3); border-radius: 2px; margin-bottom: 20px; }
+  .progress-fill { height: 3px; background: var(--purple); border-radius: 2px; transition: width .3s; }
+
+  /* Topic header */
+  .topic-title    { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .topic-subtitle { font-size: 13px; color: var(--text2); line-height: 1.55; margin-bottom: 14px; }
+
+  /* Tags */
+  .tags-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+  .tag { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+  .tag-purple { background: rgba(127,119,221,0.15); color: #AFA9EC; }
+  .tag-teal   { background: rgba(29,158,117,0.15);  color: #5DCAA5; }
+  .tag-red    { background: rgba(226,75,74,0.15);   color: #F09595; }
+  .tag-amber  { background: rgba(239,159,39,0.15);  color: #FAC775; }
+
+  /* Sections */
+  .section { margin-bottom: 16px; }
+  .section-label {
+    font-size: 10px; font-weight: 600; color: var(--text3);
+    text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px;
+  }
+
+  /* Concept box */
+  .concept-box {
+    background: var(--bg3); border-radius: var(--radius-sm);
+    padding: 14px 16px; font-size: 13px; color: var(--text);
+    line-height: 1.75; border-left: 3px solid var(--purple);
+  }
+  .concept-box strong { color: #AFA9EC; }
+
+  /* Code block */
+  .code-block {
+    background: #0d1017; border-radius: var(--radius-sm);
+    padding: 14px 16px; font-family: 'SF Mono','Fira Code','Courier New',monospace;
+    font-size: 12px; line-height: 1.75; overflow-x: auto;
+    color: #cdd6f4; border: 0.5px solid var(--border);
+  }
+  .kw  { color: #cba6f7; }
+  .cm  { color: #555d77; font-style: italic; }
+  .ty  { color: #89b4fa; }
+  .st  { color: #a6e3a1; }
+  .nm  { color: #fab387; }
+
+  /* Pitfall & Tip */
+  .pitfall-box {
+    background: rgba(239,159,39,0.08); border-radius: var(--radius-sm);
+    padding: 12px 14px; font-size: 13px; color: #FAC775;
+    line-height: 1.65; border-left: 3px solid var(--amber);
+  }
+  .tip-box {
+    background: rgba(29,158,117,0.08); border-radius: var(--radius-sm);
+    padding: 12px 14px; font-size: 13px; color: #5DCAA5;
+    line-height: 1.65; border-left: 3px solid var(--teal);
+  }
+
+  /* Diagram */
+  .diagram-wrap {
+    background: var(--bg3); border-radius: var(--radius-sm);
+    padding: 14px; overflow-x: auto; border: 0.5px solid var(--border);
+  }
+  .diagram-states { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; }
+  .ds { padding: 5px 11px; border-radius: 6px; font-weight: 500; }
+  .ds-purple { background: rgba(127,119,221,0.2); color: #AFA9EC; }
+  .ds-teal   { background: rgba(29,158,117,0.2);  color: #5DCAA5; }
+  .ds-amber  { background: rgba(239,159,39,0.2);  color: #FAC775; }
+  .ds-red    { background: rgba(226,75,74,0.2);   color: #F09595; }
+  .ds-arrow  { color: var(--text3); font-size: 13px; }
+  .diagram-note { margin-top: 8px; font-size: 11px; color: var(--text3); }
+
+  /* Divider */
+  .divider { height: 0.5px; background: var(--border); margin: 14px 0; }
+
+  /* Nav buttons */
+  .nav-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .btn {
+    padding: 8px 16px; border: 0.5px solid var(--border2);
+    background: var(--bg3); color: var(--text2); font-size: 13px;
+    border-radius: var(--radius-sm); cursor: pointer;
+    font-family: inherit; transition: background .12s, color .12s;
+  }
+  .btn:hover { background: var(--bg4); color: var(--text); }
+  .btn-ask {
+    background: rgba(127,119,221,0.1); border-color: rgba(127,119,221,0.25);
+    color: #AFA9EC;
+  }
+  .btn-ask:hover { background: rgba(127,119,221,0.18); color: #c8c4f4; }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    body { padding: 0 10px 40px; }
+    .shell { flex-direction: column; min-height: unset; }
+    .sidebar { width: 100%; min-width: 0; border-right: none; border-bottom: 0.5px solid var(--border); padding: 10px 0; max-height: 200px; }
+    .content { padding: 16px; }
+    .topic-title { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <h1>Java Concurrency — Interactive Guide</h1>
+  <p>12 topics · thread lifecycle → synchronization → locks → async → MAANG-level patterns</p>
+</div>
+
+<div class="shell">
+  <div class="sidebar" id="sidebar"></div>
+  <div class="content"  id="content"></div>
+</div>
+
+<script>
+const topics = [
+  {
+    title: "Thread lifecycle",
+    subtitle: "A thread goes through 6 states from birth to death. Understanding transitions is a common MAANG question.",
+    tags: [{l:"Core Java",c:"tag-purple"},{l:"Interview favourite",c:"tag-red"}],
+    diagram: true,
+    concept: `A Java thread is not always running. The JVM moves it through 6 states depending on what it's doing and what resources are available.\n\n<strong>NEW</strong> → object created, not started yet\n<strong>RUNNABLE</strong> → running or ready to run (scheduler decides)\n<strong>BLOCKED</strong> → waiting to acquire a monitor lock\n<strong>WAITING</strong> → waiting indefinitely (wait(), join())\n<strong>TIMED_WAITING</strong> → waiting with a timeout (sleep(), wait(n))\n<strong>TERMINATED</strong> → finished execution`,
+    code: `Thread t = new Thread(() -> System.out.println("Hello"));
+// State: NEW
+
+t.start();
+// State: RUNNABLE (running or scheduled)
+
+// Inside another thread:
+synchronized(lock) {
+    // other thread holding lock → BLOCKED
+}
+
+object.wait();       // → WAITING (indefinite)
+Thread.sleep(1000);  // → TIMED_WAITING
+t.join();            // calling thread waits for t
+
+// run() finishes → TERMINATED
+
+// Check state programmatically:
+Thread.State state = t.getState();`,
+    pitfall: "A thread in RUNNABLE is not necessarily using the CPU. It just means the OS scheduler can run it. The OS decides the actual CPU allocation.",
+    tip: "In an interview: 'BLOCKED is always about a monitor lock. WAITING is about coordination via wait/join/park.'",
+    ask: "Explain thread states with a real scenario where BLOCKED and WAITING appear together"
+  },
+  {
+    title: "Runnable vs Thread",
+    subtitle: "Two ways to define a task for a thread. One is almost always better.",
+    tags: [{l:"Design",c:"tag-purple"},{l:"OOP principle",c:"tag-teal"}],
+    concept: `<strong>extends Thread</strong> — your class IS a thread. You override run(). Problem: Java has single inheritance, so if you extend Thread you can't extend anything else. Also, the task and the execution mechanism are coupled.\n\n<strong>implements Runnable</strong> — your class defines a TASK. You hand it to a thread. This separates concern: "what to do" from "how to run it". Preferred always.\n\n<strong>Callable</strong> — like Runnable but can return a value and throw checked exceptions. Use with ExecutorService.`,
+    code: `// BAD — wastes your one inheritance slot
+class MyTask extends Thread {
+    public void run() { System.out.println("running"); }
+}
+
+// GOOD — Runnable separates task from thread
+class MyTask implements Runnable {
+    public void run() { System.out.println("running"); }
+}
+new Thread(new MyTask()).start();
+
+// BEST — lambda (Runnable is a @FunctionalInterface)
+new Thread(() -> System.out.println("running")).start();
+
+// Callable — returns a value
+Callable<Integer> task = () -> {
+    return 42; // can also throw checked exceptions
+};
+Future<Integer> future = executor.submit(task);
+int result = future.get(); // blocks until done`,
+    pitfall: "Calling run() directly does NOT start a new thread — it executes on the current thread. Always call start().",
+    tip: "For MAANG: 'I prefer Runnable/Callable because it follows composition over inheritance and works naturally with ExecutorService.'",
+    ask: "When would I use Callable over Runnable? Give me a real-world example"
+  },
+  {
+    title: "synchronized & volatile",
+    subtitle: "The two fundamental primitives for thread safety in Java.",
+    tags: [{l:"Thread safety",c:"tag-red"},{l:"Memory model",c:"tag-purple"},{l:"Core",c:"tag-teal"}],
+    concept: `<strong>synchronized</strong> — gives mutual exclusion. Only one thread can hold the monitor lock at a time. Guarantees both atomicity AND visibility.\n\n<strong>volatile</strong> — guarantees visibility only. When a field is volatile, writes by one thread are immediately visible to all other threads. Does NOT make compound operations atomic (i+1 is NOT safe with volatile alone).\n\nRule of thumb: if multiple threads read AND write, use synchronized (or Atomic). If only one thread writes and others only read, volatile can suffice.`,
+    code: `// synchronized method — locks on 'this'
+public synchronized void increment() {
+    count++; // safe: read-modify-write is atomic
+}
+
+// synchronized block — more granular, better performance
+public void increment() {
+    synchronized(this) {
+        count++;
+    }
+}
+
+// synchronized on a private lock object (best practice)
+private final Object lock = new Object();
+public void increment() {
+    synchronized(lock) { count++; }
+}
+
+// volatile — visibility but NOT atomicity
+private volatile boolean running = true;
+
+// Thread 1:
+running = false; // immediately visible to thread 2
+
+// Thread 2:
+while (running) { doWork(); } // will see the update
+
+// WRONG: volatile does NOT protect compound ops
+private volatile int count = 0;
+count++; // NOT thread-safe! (read + increment + write)`,
+    pitfall: "volatile is commonly misunderstood. It only prevents threads from caching a stale value. It does NOT make count++ atomic — use AtomicInteger for that.",
+    tip: "Interview gold: 'synchronized solves both atomicity and visibility. volatile only solves visibility. The Java Memory Model (JMM) guarantees happen-before relationships for both.'",
+    ask: "Explain the Java Memory Model and happen-before relationships in simple terms"
+  },
+  {
+    title: "Locks (ReentrantLock)",
+    subtitle: "A more powerful alternative to synchronized — with tryLock, fairness, and more control.",
+    tags: [{l:"java.util.concurrent",c:"tag-purple"},{l:"Advanced locking",c:"tag-teal"}],
+    concept: `<strong>ReentrantLock</strong> is the explicit lock from java.util.concurrent.locks. It does everything synchronized does, plus:\n\n• tryLock() — attempt to acquire without blocking\n• tryLock(timeout) — try for a fixed time, then give up\n• Fairness — optional FIFO ordering of waiting threads\n• lockInterruptibly() — can be interrupted while waiting\n• Multiple Conditions — finer-grained wait/notify than synchronized\n\n"Reentrant" means a thread that already holds the lock can acquire it again without deadlocking.`,
+    code: `import java.util.concurrent.locks.ReentrantLock;
+
+private final ReentrantLock lock = new ReentrantLock();
+// true = fair (FIFO) — use only when needed, slower
+// new ReentrantLock(true);
+
+public void safeOperation() {
+    lock.lock(); // blocks until acquired
+    try {
+        // critical section
+        count++;
+    } finally {
+        lock.unlock(); // ALWAYS unlock in finally!
+    }
+}
+
+// tryLock — non-blocking attempt
+public boolean tryOperation() {
+    if (lock.tryLock()) {
+        try {
+            count++;
+            return true;
+        } finally {
+            lock.unlock();
+        }
+    }
+    return false; // couldn't get lock
+}
+
+// tryLock with timeout
+boolean acquired = lock.tryLock(500, TimeUnit.MILLISECONDS);
+
+// Multiple conditions (producer/consumer)
+Condition notEmpty = lock.newCondition();
+Condition notFull  = lock.newCondition();
+notFull.await();   // like wait()
+notEmpty.signal(); // like notify() — but precise`,
+    pitfall: "You MUST unlock in a finally block. If the critical section throws, synchronized auto-releases the monitor, but ReentrantLock does not. Forgetting finally = permanent deadlock.",
+    tip: "Use synchronized for simple cases. Reach for ReentrantLock when you need tryLock, timeout, fairness, or multiple conditions.",
+    ask: "Show me a producer-consumer pattern implemented with ReentrantLock and Conditions"
+  },
+  {
+    title: "Executors & thread pools",
+    subtitle: "Stop creating raw threads. Use thread pools for production code.",
+    tags: [{l:"Performance",c:"tag-teal"},{l:"Production essential",c:"tag-red"},{l:"Spring Boot",c:"tag-purple"}],
+    concept: `Creating a new thread is expensive — ~1MB of stack memory, OS scheduling overhead. A <strong>thread pool</strong> reuses a fixed set of threads to process many tasks. This is how every real system works.\n\n<strong>ExecutorService</strong> is the interface. <strong>Executors</strong> is the factory. For production, configure <strong>ThreadPoolExecutor</strong> directly so you control every parameter.`,
+    code: `import java.util.concurrent.*;
+
+// Factory shortcuts (OK for simple use)
+ExecutorService fixed  = Executors.newFixedThreadPool(4);
+ExecutorService cached = Executors.newCachedThreadPool();
+ExecutorService single = Executors.newSingleThreadExecutor();
+ScheduledExecutorService sched = Executors.newScheduledThreadPool(2);
+
+// Production: configure ThreadPoolExecutor directly
+ExecutorService pool = new ThreadPoolExecutor(
+    4,              // corePoolSize — always-alive threads
+    8,              // maximumPoolSize — peak threads
+    60L, TimeUnit.SECONDS, // keepAlive for extra threads
+    new LinkedBlockingQueue<>(1000), // task queue (bounded!)
+    new ThreadPoolExecutor.CallerRunsPolicy() // rejection policy
+);
+
+// Submit tasks
+pool.execute(() -> System.out.println("fire and forget"));
+Future<String> f = pool.submit(() -> "result");
+String result = f.get(); // blocks
+
+// Scheduled tasks
+sched.scheduleAtFixedRate(
+    () -> healthCheck(), 0, 30, TimeUnit.SECONDS);
+
+// Graceful shutdown
+pool.shutdown();
+pool.awaitTermination(30, TimeUnit.SECONDS);
+
+// Rejection policies:
+// AbortPolicy (default) — throws RejectedExecutionException
+// CallerRunsPolicy — caller thread runs the task (backpressure)
+// DiscardPolicy — silently drops the task
+// DiscardOldestPolicy — drops oldest queued task`,
+    pitfall: "newCachedThreadPool() can create unlimited threads under load → OutOfMemoryError. newFixedThreadPool uses an UNBOUNDED queue → silently accumulates millions of tasks. Always use bounded queues in production.",
+    tip: "In Spring Boot: use @Async with a custom TaskExecutor bean (backed by ThreadPoolExecutor). Never use the default SimpleAsyncTaskExecutor in prod — it creates a new thread per call.",
+    ask: "How do I configure a custom thread pool in Spring Boot with @Async? Show me the complete setup"
+  },
+  {
+    title: "CompletableFuture",
+    subtitle: "Async pipelines without callback hell. The backbone of non-blocking Java code.",
+    tags: [{l:"Async",c:"tag-purple"},{l:"Java 8+",c:"tag-teal"},{l:"Spring WebFlux adjacent",c:"tag-amber"}],
+    concept: `<strong>CompletableFuture</strong> is Java's promise/future that you can chain, compose, and combine. It runs tasks asynchronously on ForkJoinPool.commonPool() by default, or on your own executor.\n\nKey operations:\n• <strong>thenApply</strong> — transform result (like map)\n• <strong>thenAccept</strong> — consume result, return void\n• <strong>thenRun</strong> — run after, no access to result\n• <strong>thenCombine</strong> — combine two futures\n• <strong>allOf</strong> — wait for ALL to complete\n• <strong>anyOf</strong> — complete when FIRST one finishes\n• <strong>exceptionally</strong> — handle errors in the pipeline`,
+    code: `// Start an async task
+CompletableFuture<String> future = CompletableFuture
+    .supplyAsync(() -> fetchUser(userId))
+    .thenApply(user -> enrichWithProfile(user))
+    .thenApply(user -> user.toDTO())
+    .exceptionally(ex -> UserDTO.empty());
+
+UserDTO dto = future.get();
+UserDTO dto2 = future.get(5, TimeUnit.SECONDS);
+
+// Run on your own thread pool
+CompletableFuture.supplyAsync(() -> callExternalAPI(), myPool);
+
+// Combine two independent futures
+CompletableFuture<User>    userFuture    = fetchUserAsync(id);
+CompletableFuture<Account> accountFuture = fetchAccountAsync(id);
+
+CompletableFuture<Response> combined = userFuture
+    .thenCombine(accountFuture,
+        (user, account) -> buildResponse(user, account));
+
+// Wait for ALL of N futures
+CompletableFuture.allOf(f1, f2, f3)
+    .thenRun(() -> System.out.println("all done"));
+
+// Complete when first finishes
+CompletableFuture.anyOf(primary, fallback)
+    .thenAccept(result -> process(result));
+
+// Manually complete (useful in tests)
+CompletableFuture<String> cf = new CompletableFuture<>();
+cf.complete("manual result");
+cf.completeExceptionally(new RuntimeException("fail"));`,
+    pitfall: "thenApply runs on the thread that completed the previous stage — possibly a pool thread. thenApplyAsync always submits to the executor. Mix them wrong and you'll block pool threads.",
+    tip: "For Spring Boot: CompletableFuture + @Async is a great combo. Return CompletableFuture<ResponseEntity> from controllers for non-blocking endpoints.",
+    ask: "Build me a real example: fetch user data and order data in parallel, then combine them into a response using CompletableFuture"
+  },
+  {
+    title: "Race conditions",
+    subtitle: "When two threads touch shared state simultaneously and break each other's assumptions.",
+    tags: [{l:"Bug type",c:"tag-red"},{l:"Must understand",c:"tag-purple"}],
+    concept: `A <strong>race condition</strong> occurs when the result of a program depends on the relative timing of threads — and that timing isn't guaranteed.\n\nThe classic example is check-then-act: thread A checks "if balance > 0", then thread B withdraws everything, then thread A withdraws too. Now you're negative.\n\nAnother is read-modify-write: count++ is actually 3 steps (read, add, write). Two threads doing this simultaneously can both read the same value and both write the same incremented value — losing one increment.`,
+    code: `// UNSAFE — classic race condition
+class Counter {
+    private int count = 0;
+    public void increment() { count++; } // NOT atomic!
+    public int get() { return count; }
+}
+// Two threads × 1000 increments = anywhere from 1001–2000
+
+// FIX 1: synchronized
+public synchronized void increment() { count++; }
+
+// FIX 2: AtomicInteger (better for simple counters)
+private AtomicInteger count = new AtomicInteger(0);
+public void increment() { count.incrementAndGet(); }
+
+// CHECK-THEN-ACT race condition
+// UNSAFE:
+if (!map.containsKey(key)) {
+    map.put(key, value); // another thread might put first!
+}
+
+// FIX: atomic putIfAbsent
+map.putIfAbsent(key, value);
+
+// Or ConcurrentHashMap.computeIfAbsent (atomic):
+map.computeIfAbsent(key, k -> expensiveCompute(k));
+
+// UNSAFE lazy singleton:
+if (instance == null) {
+    instance = new Singleton(); // both threads create!
+}
+
+// FIX: double-checked locking with volatile
+private static volatile Singleton instance;
+public static Singleton getInstance() {
+    if (instance == null) {
+        synchronized(Singleton.class) {
+            if (instance == null) {
+                instance = new Singleton();
+            }
+        }
+    }
+    return instance;
+}`,
+    pitfall: "Race conditions are often invisible in testing because they depend on timing. They appear randomly in production under load. This makes them one of the hardest bugs to debug.",
+    tip: "At MAANG: 'I identify shared mutable state, then ask: is every access either immutable, synchronized, or using an atomic type?'",
+    ask: "What is double-checked locking and why does it need volatile? Explain it deeply"
+  },
+  {
+    title: "Deadlocks",
+    subtitle: "Thread A waits for Thread B. Thread B waits for Thread A. Forever.",
+    tags: [{l:"Critical bug",c:"tag-red"},{l:"System design",c:"tag-purple"}],
+    concept: `A <strong>deadlock</strong> requires all 4 of these to be true simultaneously (Coffman conditions):\n1. <strong>Mutual exclusion</strong> — locks can only be held by one thread\n2. <strong>Hold and wait</strong> — thread holds a lock while waiting for another\n3. <strong>No preemption</strong> — locks can't be forcibly taken\n4. <strong>Circular wait</strong> — threads form a cycle of dependencies\n\nBreaking ANY ONE of these prevents deadlock. The easiest: eliminate circular wait by establishing a <strong>global lock ordering</strong>.`,
+    code: `// DEADLOCK — classic ABBA pattern
+Object lockA = new Object();
+Object lockB = new Object();
+
+Thread t1 = new Thread(() -> {
+    synchronized(lockA) {      // acquires A
+        Thread.sleep(100);
+        synchronized(lockB) {  // WAITS for B — deadlock
+            System.out.println("t1 done");
+        }
+    }
+});
+
+Thread t2 = new Thread(() -> {
+    synchronized(lockB) {      // acquires B
+        Thread.sleep(100);
+        synchronized(lockA) {  // WAITS for A — deadlock
+            System.out.println("t2 done");
+        }
+    }
+});
+
+// FIX 1: Global lock ordering (break circular wait)
+Thread t2Fixed = new Thread(() -> {
+    synchronized(lockA) { // same order as t1!
+        synchronized(lockB) {
+            System.out.println("t2 done — safe");
+        }
+    }
+});
+
+// FIX 2: tryLock with timeout
+if (lockA.tryLock(500, MILLISECONDS)) {
+    try {
+        if (lockB.tryLock(500, MILLISECONDS)) {
+            try { doWork(); }
+            finally { lockB.unlock(); }
+        }
+    } finally { lockA.unlock(); }
+}
+
+// DETECT deadlocks in production:
+ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+long[] deadlocked = bean.findDeadlockedThreads();
+// Also: jstack <pid> dumps thread states`,
+    pitfall: "Deadlocks don't throw exceptions — they just silently freeze parts of your application. This can look like a performance issue until threads are dumped.",
+    tip: "Interview answer: '1) consistent lock ordering, 2) tryLock with timeout, 3) avoid nested locks where possible, 4) use higher-level tools like BlockingQueue that handle locking internally.'",
+    ask: "Show me how to detect and diagnose a deadlock in a running Spring Boot application"
+  },
+  {
+    title: "Atomic operations & CAS",
+    subtitle: "Lock-free thread safety using compare-and-swap. Faster than synchronized for counters.",
+    tags: [{l:"Bonus",c:"tag-teal"},{l:"Low-level perf",c:"tag-purple"},{l:"MAANG favourite",c:"tag-red"}],
+    bonus: true,
+    concept: `<strong>Atomic classes</strong> (AtomicInteger, AtomicLong, AtomicReference) use <strong>Compare-And-Swap (CAS)</strong> — a CPU-level instruction — to do lock-free updates.\n\nCAS: "Update value from expected to new ONLY IF current value == expected. Otherwise retry."\n\nThis is optimistic: assumes no contention, retries if wrong. Under low-high contention, this beats synchronized. Under extreme contention, synchronized may win.\n\n<strong>LongAdder</strong> is even better for pure counters under high contention — it shards the counter internally.`,
+    code: `import java.util.concurrent.atomic.*;
+
+AtomicInteger counter = new AtomicInteger(0);
+
+counter.incrementAndGet();    // ++counter (atomic)
+counter.getAndIncrement();    // counter++ (atomic)
+counter.addAndGet(5);         // counter += 5 (atomic)
+counter.compareAndSet(5, 10); // if value==5, set to 10
+
+// AtomicReference — for object references
+AtomicReference<String> ref = new AtomicReference<>("hello");
+ref.compareAndSet("hello", "world");
+
+// Manual CAS loop (how AtomicInteger works internally):
+AtomicInteger val = new AtomicInteger(0);
+int current, next;
+do {
+    current = val.get();
+    next = current + 1;
+} while (!val.compareAndSet(current, next));
+
+// LongAdder — preferred for high-contention counters
+LongAdder adder = new LongAdder();
+adder.increment();
+long total = adder.sum(); // sum across internal cells
+
+// AtomicStampedReference — prevents ABA problem
+AtomicStampedReference<String> stamped =
+    new AtomicStampedReference<>("A", 0);
+int[] stampHolder = new int[1];
+String val2 = stamped.get(stampHolder);
+stamped.compareAndSet("A","B", stampHolder[0], stampHolder[0]+1);`,
+    pitfall: "CAS suffers from the ABA problem: if a value changes from A to B and back to A, CAS thinks nothing changed. Use AtomicStampedReference to add a version stamp if this matters.",
+    tip: "MAANG: 'For a shared counter in a microservice, I'd use LongAdder over AtomicInteger under high throughput because it reduces contention by striping the counter.'",
+    ask: "Explain the ABA problem in depth with a real-world scenario where it causes bugs"
+  },
+  {
+    title: "CountDownLatch, CyclicBarrier & Semaphore",
+    subtitle: "Coordination tools. Threads waiting for each other to reach a checkpoint.",
+    tags: [{l:"Bonus",c:"tag-teal"},{l:"Coordination",c:"tag-purple"},{l:"System design",c:"tag-amber"}],
+    bonus: true,
+    concept: `<strong>CountDownLatch</strong> — one-time gate. N threads count down; waiting thread proceeds when count hits 0. Cannot be reset.\n\n<strong>CyclicBarrier</strong> — reusable rendezvous point. N threads all wait at a barrier; all proceed together when the last arrives. Can be used repeatedly.\n\n<strong>Semaphore</strong> — controls access to N permits. Limits how many threads can do something concurrently (e.g., max 10 DB connections).`,
+    code: `// CountDownLatch — wait for N tasks to finish
+CountDownLatch latch = new CountDownLatch(3);
+
+for (int i = 0; i < 3; i++) {
+    pool.submit(() -> {
+        doWork();
+        latch.countDown(); // signal "I'm done"
+    });
+}
+latch.await(); // main thread waits here until count=0
+
+// CyclicBarrier — all threads meet at a checkpoint
+CyclicBarrier barrier = new CyclicBarrier(3,
+    () -> System.out.println("all at checkpoint"));
+
+Runnable worker = () -> {
+    doPhase1();
+    barrier.await();  // all 3 wait here
+    doPhase2();       // all 3 proceed together
+    barrier.await();  // reusable!
+    doPhase3();
+};
+
+// Semaphore — limit concurrent access
+Semaphore dbPool = new Semaphore(10); // max 10 concurrent
+
+public void queryDB() throws InterruptedException {
+    dbPool.acquire(); // blocks if 10 already acquired
+    try {
+        executeQuery();
+    } finally {
+        dbPool.release(); // always release!
+    }
+}
+
+// tryAcquire for non-blocking:
+if (dbPool.tryAcquire(200, TimeUnit.MILLISECONDS)) {
+    try { executeQuery(); }
+    finally { dbPool.release(); }
+} else {
+    throw new ServiceUnavailableException("DB pool full");
+}`,
+    pitfall: "CountDownLatch cannot be reused — once it hits 0, it stays 0. If you need to run multiple rounds (like parallel batch processing phases), use CyclicBarrier.",
+    tip: "Real Spring Boot use: use CountDownLatch in integration tests to wait for async events. Use Semaphore to rate-limit calls to external APIs.",
+    ask: "Design a parallel data processing pipeline using CountDownLatch and ExecutorService"
+  },
+  {
+    title: "BlockingQueue",
+    subtitle: "Thread-safe queue with built-in blocking. The backbone of producer-consumer.",
+    tags: [{l:"Bonus",c:"tag-teal"},{l:"Producer-consumer",c:"tag-purple"},{l:"Spring Boot",c:"tag-amber"}],
+    bonus: true,
+    concept: `<strong>BlockingQueue</strong> is a thread-safe queue that blocks on put() when full and on take() when empty. It handles all the wait/notify/locking internally — you write clean producer-consumer code with zero explicit synchronization.\n\nImplementations:\n• <strong>LinkedBlockingQueue</strong> — optionally bounded, good default\n• <strong>ArrayBlockingQueue</strong> — strictly bounded, fixed size\n• <strong>PriorityBlockingQueue</strong> — ordered by priority\n• <strong>SynchronousQueue</strong> — no storage, direct handoff`,
+    code: `import java.util.concurrent.*;
+
+BlockingQueue<Task> queue = new LinkedBlockingQueue<>(100);
+// Bounded: max 100 items. put() blocks if full.
+
+// Producer thread
+class Producer implements Runnable {
+    public void run() {
+        while (true) {
+            Task task = generateTask();
+            queue.put(task);    // BLOCKS if queue is full
+        }
+    }
+}
+
+// Consumer thread
+class Consumer implements Runnable {
+    public void run() {
+        while (true) {
+            Task task = queue.take(); // BLOCKS if empty
+            process(task);
+        }
+    }
+}
+
+// Real-world: worker pool with shared task queue
+BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>(500);
+ExecutorService pool = new ThreadPoolExecutor(
+    4, 8, 60L, TimeUnit.SECONDS,
+    workQueue,
+    new ThreadPoolExecutor.CallerRunsPolicy()
+);
+
+// SynchronousQueue — direct handoff, no buffering
+BlockingQueue<Task> sync = new SynchronousQueue<>();
+// put() blocks until another thread calls take()
+
+// Batch drain for efficiency
+List<Task> batch = new ArrayList<>();
+queue.drainTo(batch, 50); // drain up to 50 at once
+processBatch(batch);`,
+    pitfall: "LinkedBlockingQueue without a bound = effectively infinite queue. Under load, tasks pile up, memory explodes. Always set a bound in production.",
+    tip: "In Spring Boot, BlockingQueue is the right tool for event queues, async processing pipelines, and request buffering. Spring's ThreadPoolTaskExecutor uses it under the hood.",
+    ask: "Build a complete producer-consumer system in Spring Boot using BlockingQueue and @Async"
+  },
+  {
+    title: "ThreadLocal",
+    subtitle: "Per-thread variables. Each thread gets its own isolated copy.",
+    tags: [{l:"Bonus",c:"tag-teal"},{l:"Spring internals",c:"tag-purple"},{l:"Tricky",c:"tag-red"}],
+    bonus: true,
+    concept: `<strong>ThreadLocal</strong> gives each thread its own copy of a variable. No sharing, no synchronization needed. The thread sets its value and reads it back — other threads can't see it.\n\nSpring uses ThreadLocal internally for: RequestContextHolder (current HTTP request), SecurityContextHolder (current user), TransactionSynchronizationManager (current transaction).\n\n<strong>The danger</strong>: in thread pools, threads are reused. If you don't remove() your ThreadLocal value, the next task on that thread sees the previous task's data. This causes data leaks and security bugs.`,
+    code: `// Basic usage
+ThreadLocal<String> currentUser = new ThreadLocal<>();
+
+currentUser.set("alice");     // set for THIS thread only
+String user = currentUser.get(); // "alice"
+currentUser.remove();         // ALWAYS remove when done
+
+// ThreadLocal with initial value
+ThreadLocal<SimpleDateFormat> dateFormat =
+    ThreadLocal.withInitial(
+        () -> new SimpleDateFormat("yyyy-MM-dd"));
+// Safe! Each thread gets its own SDF instance
+
+// Real pattern: request context in a web app
+public class RequestContext {
+    private static final ThreadLocal<String> traceId =
+        new ThreadLocal<>();
+
+    public static void setTraceId(String id) { traceId.set(id); }
+    public static String getTraceId() { return traceId.get(); }
+    public static void clear() { traceId.remove(); } // CRITICAL
+}
+
+// In a Spring Filter:
+@Override
+public void doFilter(ServletRequest req, ServletResponse res,
+                     FilterChain chain) throws IOException {
+    try {
+        RequestContext.setTraceId(generateTraceId());
+        chain.doFilter(req, res);
+    } finally {
+        RequestContext.clear(); // ALWAYS clean up in finally!
+    }
+}
+
+// InheritableThreadLocal — child threads inherit parent value
+InheritableThreadLocal<String> inherited =
+    new InheritableThreadLocal<>();
+inherited.set("parent-value");
+new Thread(() -> {
+    System.out.println(inherited.get()); // "parent-value"
+}).start();`,
+    pitfall: "Memory leaks in thread pools: if you set a ThreadLocal but never call remove(), the value lives as long as the thread (forever in a pool). With complex objects, this is a serious memory leak.",
+    tip: "In Spring Security, SecurityContextHolder.getContext() uses ThreadLocal. If you use @Async, the security context is NOT automatically propagated — you need DelegatingSecurityContextExecutor.",
+    ask: "How does Spring Security propagate authentication to async threads? What breaks and how to fix it"
+  }
+];
+
+// Build sidebar
+const sidebar = document.getElementById('sidebar');
+
+const coreLabel = document.createElement('div');
+coreLabel.className = 'sidebar-title';
+coreLabel.textContent = 'Core Concepts';
+sidebar.appendChild(coreLabel);
+
+topics.forEach((t, i) => {
+  if (i === 8) {
+    const bonusLabel = document.createElement('div');
+    bonusLabel.className = 'sidebar-title';
+    bonusLabel.style.marginTop = '10px';
+    bonusLabel.textContent = 'Bonus — MAANG Edge';
+    sidebar.appendChild(bonusLabel);
+  }
+  const item = document.createElement('div');
+  item.className = 'nav-item' + (i === 0 ? ' active' : '');
+  item.id = 'n' + i;
+  item.onclick = () => show(i);
+  item.textContent = t.title;
+  if (t.bonus) {
+    const badge = document.createElement('span');
+    badge.className = 'nav-badge';
+    badge.textContent = '+';
+    item.appendChild(badge);
+  }
+  sidebar.appendChild(item);
+});
+
+function show(idx) {
+  document.querySelectorAll('.nav-item').forEach((el, i) => {
+    el.classList.toggle('active', i === idx);
+  });
+  render(topics[idx], idx);
+  document.getElementById('content').scrollTop = 0;
+}
+
+function render(t, idx) {
+  const pct = Math.round(((idx + 1) / topics.length) * 100);
+  let html = `<div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>`;
+
+  html += `<div class="topic-title">${t.title}</div>`;
+  html += `<div class="topic-subtitle">${t.subtitle}</div>`;
+
+  html += `<div class="tags-row">`;
+  t.tags.forEach(tag => { html += `<span class="tag ${tag.c}">${tag.l}</span>`; });
+  html += `</div>`;
+
+  if (t.diagram) {
+    html += `
+    <div class="section">
+      <div class="section-label">Thread state machine</div>
+      <div class="diagram-wrap">
+        <div class="diagram-states">
+          <span class="ds ds-purple">NEW</span>
+          <span class="ds-arrow">→</span>
+          <span class="ds ds-teal">RUNNABLE</span>
+          <span class="ds-arrow">⇄</span>
+          <span class="ds ds-amber">BLOCKED</span>
+          <span class="ds-arrow" style="padding:0 4px">|</span>
+          <span class="ds ds-amber">WAITING</span>
+          <span class="ds-arrow" style="padding:0 4px">|</span>
+          <span class="ds ds-amber">TIMED_WAITING</span>
+          <span class="ds-arrow">→</span>
+          <span class="ds ds-red">TERMINATED</span>
+        </div>
+        <div class="diagram-note">All non-RUNNABLE states return to RUNNABLE when the blocking condition resolves</div>
+      </div>
+    </div>`;
+  }
+
+  html += `
+    <div class="section">
+      <div class="section-label">Concept</div>
+      <div class="concept-box">${t.concept.replace(/\n/g, '<br>')}</div>
+    </div>
+    <div class="section">
+      <div class="section-label">Code</div>
+      <div class="code-block">${highlight(t.code)}</div>
+    </div>`;
+
+  if (t.pitfall) html += `
+    <div class="section">
+      <div class="section-label">Common pitfall</div>
+      <div class="pitfall-box">${t.pitfall}</div>
+    </div>`;
+
+  if (t.tip) html += `
+    <div class="section">
+      <div class="section-label">Interview tip</div>
+      <div class="tip-box">${t.tip}</div>
+    </div>`;
+
+  html += `<div class="nav-btns">`;
+  if (idx > 0)               html += `<button class="btn" onclick="show(${idx-1})">← Previous</button>`;
+  if (idx < topics.length-1) html += `<button class="btn" onclick="show(${idx+1})">Next →</button>`;
+  html += `<button class="btn btn-ask" onclick="sendPrompt('${t.ask.replace(/'/g,"\\'")}')">Ask: ${t.ask.substring(0,50)}… ↗</button>`;
+  html += `</div>`;
+
+  document.getElementById('content').innerHTML = html;
+}
+
+function highlight(code) {
+  return code
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\/\/.*/g, m => `<span class="cm">${m}</span>`)
+    .replace(/\b(new|return|class|extends|implements|import|private|public|static|final|void|int|long|boolean|true|false|null|while|for|if|else|do|try|finally|throw|throws|this)\b/g, m => `<span class="kw">${m}</span>`)
+    .replace(/\b(Thread|Runnable|Callable|Future|CompletableFuture|ExecutorService|Executors|ThreadPoolExecutor|ScheduledExecutorService|BlockingQueue|LinkedBlockingQueue|ArrayBlockingQueue|SynchronousQueue|AtomicInteger|AtomicLong|AtomicReference|AtomicStampedReference|LongAdder|ReentrantLock|Condition|Semaphore|CountDownLatch|CyclicBarrier|ThreadLocal|InheritableThreadLocal|String|Integer|List|ArrayList|Object|System|TimeUnit|ThreadMXBean|ManagementFactory|SimpleDateFormat|FilterChain|ServletRequest|ServletResponse)\b/g, m => `<span class="ty">${m}</span>`)
+    .replace(/"[^"]*"/g, m => `<span class="st">${m}</span>`)
+    .replace(/\b\d+L?\b/g, m => `<span class="nm">${m}</span>`);
+}
+
+render(topics[0], 0);
+</script>
+</body>
+</html>

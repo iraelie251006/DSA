@@ -13,5 +13,6 @@ def read_pid_cpu_time(pid):
     # open /proc/{pid}/stat
     # extract: process name, utime + stime
     # return (name, total_ticks) or None if process is gone
-    pass
+    with open(f"/proc/{pid}/stat") as f:
+        pass
         

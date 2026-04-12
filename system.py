@@ -8,3 +8,6 @@ def read_system_cpu_times():
     idle = times[3] + times[4]
 
     return total, idle
+
+def read_pid_cpu_time(pid):
+    pass

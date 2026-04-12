@@ -15,4 +15,3 @@ def read_pid_cpu_time(pid):
     # return (name, total_ticks) or None if process is gone
     with open(f"/proc/{pid}/stat") as f:
         pass
-        

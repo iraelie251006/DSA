@@ -1,4 +1,5 @@
 import os
+import time
 
 def read_system_cpu_times():
     with open("/proc/stat") as f:
@@ -31,3 +32,31 @@ def get_all_pids():
     pids = [name for name in os.listdir("/proc") if name.isdigit()]
     return pids
 
+def take_snapshot():
+    system_cpu_time = read_system_cpu_times()
+    pids = get_all_pids()
+    pids_cpu_time_dict = {}
+    for pid in pids:
+        pid_cpu_time = read_pid_cpu_time(pid)
+
+        if pid_cpu_time is not None:
+            pids_cpu_time_dict[pid] = pid_cpu_time
+
+    (sys_total, sys_idle) = system_cpu_time
+
+    return sys_total, sys_idle, pids_cpu_time_dict
+
+def compute_cpu_percent(snap1, snap2):
+    result = []
+
+    for pid in snap1[2].keys():
+            if pid in snap2[2]:
+                pid_ticks_snap1, pid_ticks_snap2 = snap1[2].get(pid)[1], snap2[2].get(pid)[1]
+                sys_total_snap1, sys_total_snap2 = snap1[0], snap2[0]
+                cpu_pct = (pid_ticks_snap2 - pid_ticks_snap1) / (sys_total_snap2 - sys_total_snap1) * 100
+
+                pid_cpu_pct = (pid, snap1[2].get(pid)[0], cpu_pct)
+
+                result.append(pid_cpu_pct)
+    result.sort(key=lambda x: x[2], reverse=True)
+    return result

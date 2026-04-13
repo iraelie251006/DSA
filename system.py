@@ -65,3 +65,18 @@ def format_bar(pct, width=20, num_cpus=1):
     filled = int(min(pct / num_cpus, 100) / 100 * width)
     bar = "█" * filled + "░" * (width - filled)
     return bar
+
+def get_num_cpus():
+    count = 0
+    try:
+        with open("/proc/cpuinfo") as f:
+            for line in f:
+                if line.startswith("processor"):
+                    count += 1
+    except FileNotFoundError:
+        count = 1
+    return max(count, 1)
+ 
+ 
+def clear_screen():
+    print("\033[H\033[J", end="")

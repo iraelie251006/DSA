@@ -80,3 +80,45 @@ def get_num_cpus():
  
 def clear_screen():
     print("\033[H\033[J", end="")
+
+def run(interval=1.0, top_n=25):
+    num_cpus = get_num_cpus()
+    print(f"Collecting baseline ({interval}s sample)…")
+    snap1 = take_snapshot()
+    time.sleep(interval)
+ 
+    try:
+        while True:
+            snap2 = take_snapshot()
+            results = compute_cpu_percent(snap1, snap2)
+            snap1 = snap2  # Roll forward
+ 
+            clear_screen()
+            now = time.strftime("%Y-%m-%d %H:%M:%S")
+            print(f"┌─ Live CPU Monitor  [{now}]  CPUs: {num_cpus}  Interval: {interval}s ─┐")
+            print(f"│ {'PID':>7}  {'NAME':<16}  {'CPU%':>6}  {'BAR':<22}│")
+            print(f"│{'─'*58}│")
+ 
+            shown = 0
+            for pid, name, pct in results:
+                if shown >= top_n:
+                    break
+                if pct < 0.01:
+                    break
+                bar = format_bar(pct, width=20, num_cpus=num_cpus)
+                display_pct = min(pct, 100.0 * num_cpus)
+                name_trunc = name[:15]
+                print(f"│ {pid:>7}  {name_trunc:<16}  {display_pct:>5.1f}%  {bar:<22}│")
+                shown += 1
+ 
+            if shown == 0:
+                print(f"│  {'(all processes at ~0% CPU)':^54}  │")
+ 
+            print(f"└{'─'*58}┘")
+            print(f"  Showing top {shown} of {len(results)} active processes. Press Ctrl+C to quit.")
+ 
+            time.sleep(interval)
+ 
+    except KeyboardInterrupt:
+        print("\nExiting.")
+

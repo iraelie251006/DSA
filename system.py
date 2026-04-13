@@ -1,3 +1,5 @@
+import os
+
 def read_system_cpu_times():
     with open("/proc/stat") as f:
         line = f.readline()
@@ -24,3 +26,8 @@ def read_pid_cpu_time(pid):
         return name, total_ticks
     except (FileNotFoundError, PermissionError, ValueError):
         return None
+
+def get_all_pids():
+    pids = [name for name in os.listdir("/proc") if name.isdigit()]
+    return pids
+

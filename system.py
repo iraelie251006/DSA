@@ -10,8 +10,17 @@ def read_system_cpu_times():
     return total, idle
 
 def read_pid_cpu_time(pid):
-    # open /proc/{pid}/stat
-    # extract: process name, utime + stime
-    # return (name, total_ticks) or None if process is gone
-    with open(f"/proc/{pid}/stat") as f:
-        pass
+    try:
+        with open(f"/proc/{pid}/stat") as f:
+            data = f.readline()
+
+        rparen = data.rfind(")")
+        name = data[data.find("(") + 1:rparen]
+
+        rest = list(map(int, data[rparen + 4:].split()))
+
+        total_ticks = rest[10] + rest[11]
+
+        return name, total_ticks
+    except (FileNotFoundError, PermissionError, ValueError):
+        return None

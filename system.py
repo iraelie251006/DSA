@@ -60,3 +60,8 @@ def compute_cpu_percent(snap1, snap2):
                 result.append(pid_cpu_pct)
     result.sort(key=lambda x: x[2], reverse=True)
     return result
+
+def format_bar(pct, width=20, num_cpus=1):
+    filled = int(min(pct / num_cpus, 100) / 100 * width)
+    bar = "█" * filled + "░" * (width - filled)
+    return bar

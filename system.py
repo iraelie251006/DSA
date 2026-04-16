@@ -12,6 +12,7 @@ def read_system_cpu_times():
 
     return total, idle
 
+# function to read pid cpu time
 def read_pid_cpu_time(pid):
     try:
         with open(f"/proc/{pid}/stat") as f:

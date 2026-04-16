@@ -81,6 +81,7 @@ def get_num_cpus():
 def clear_screen():
     print("\033[H\033[J", end="")
 
+# main function running
 def run(interval=1.0, top_n=25):
     num_cpus = get_num_cpus()
     print(f"Collecting baseline ({interval}s sample)…")

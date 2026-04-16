@@ -77,7 +77,7 @@ def get_num_cpus():
         count = 1
     return max(count, 1)
  
- 
+# clearing screen function
 def clear_screen():
     print("\033[H\033[J", end="")
 

@@ -46,6 +46,7 @@ def take_snapshot():
 
     return sys_total, sys_idle, pids_cpu_time_dict
 
+# function to compute cpu percentage
 def compute_cpu_percent(snap1, snap2):
     result = []
 

@@ -32,6 +32,7 @@ def get_all_pids():
     pids = [name for name in os.listdir("/proc") if name.isdigit()]
     return pids
 
+# function to take samples
 def take_snapshot():
     system_cpu_time = read_system_cpu_times()
     pids = get_all_pids()
